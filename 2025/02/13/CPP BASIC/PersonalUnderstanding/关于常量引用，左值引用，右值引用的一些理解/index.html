@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>关于常量引用，左值引用，右值引用的一些理解 - 传说中的三蛋</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="神明大人的小站"><meta name="msapplication-TileImage" content="/img/favicon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="神明大人的小站"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="简单理解代码块1： 123double dval &amp;#x3D; 3.14;&amp;#x2F;&amp;#x2F; 使用右值引用接受隐式转换产生的临时量（字面量）int &amp;amp;&amp;amp;rd &amp;#x3D; dval;  代码块2： 123456double dval &amp;#x3D; 3.14;const int &amp;amp;ri &amp;#x3D; dval;&amp;#x2F;&amp;#x2F; 实际赋值过程如下，产生了一个中间变量double dval &amp;#x3D; 3.14;const int temp  &amp;#x3D; dv"><meta property="og:type" content="blog"><meta property="og:title" content="神明大人"><meta property="og:url" content="https://flsy.netlify.app/2025/02/13/CPP%20BASIC/PersonalUnderstanding/%E5%85%B3%E4%BA%8E%E5%B8%B8%E9%87%8F%E5%BC%95%E7%94%A8%EF%BC%8C%E5%B7%A6%E5%80%BC%E5%BC%95%E7%94%A8%EF%BC%8C%E5%8F%B3%E5%80%BC%E5%BC%95%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%90%86%E8%A7%A3/"><meta property="og:site_name" content="传说中的三蛋"><meta property="og:description" content="简单理解代码块1： 123double dval &amp;#x3D; 3.14;&amp;#x2F;&amp;#x2F; 使用右值引用接受隐式转换产生的临时量（字面量）int &amp;amp;&amp;amp;rd &amp;#x3D; dval;  代码块2： 123456double dval &amp;#x3D; 3.14;const int &amp;amp;ri &amp;#x3D; dval;&amp;#x2F;&amp;#x2F; 实际赋值过程如下，产生了一个中间变量double dval &amp;#x3D; 3.14;const int temp  &amp;#x3D; dv"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://flsy.netlify.app/img/og_image.png"><meta property="article:published_time" content="2025-02-13T11:36:01.000Z"><meta property="article:modified_time" content="2025-05-29T10:02:50.156Z"><meta property="article:author" content="神明大人"><meta property="article:tag" content="cpp_dev"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://flsy.netlify.app/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://flsy.netlify.app/2025/02/13/CPP%20BASIC/PersonalUnderstanding/%E5%85%B3%E4%BA%8E%E5%B8%B8%E9%87%8F%E5%BC%95%E7%94%A8%EF%BC%8C%E5%B7%A6%E5%80%BC%E5%BC%95%E7%94%A8%EF%BC%8C%E5%8F%B3%E5%80%BC%E5%BC%95%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%90%86%E8%A7%A3/"},"headline":"关于常量引用，左值引用，右值引用的一些理解","image":["https://flsy.netlify.app/img/og_image.png"],"datePublished":"2025-02-13T11:36:01.000Z","dateModified":"2025-05-29T10:02:50.156Z","author":{"@type":"Person","name":"神明大人"},"publisher":{"@type":"Organization","name":"传说中的三蛋","logo":{"@type":"ImageObject","url":"https://flsy.netlify.app/img/logo.svg"}},"description":"简单理解代码块1： 123double dval &#x3D; 3.14;&#x2F;&#x2F; 使用右值引用接受隐式转换产生的临时量（字面量）int &amp;&amp;rd &#x3D; dval;  代码块2： 123456double dval &#x3D; 3.14;const int &amp;ri &#x3D; dval;&#x2F;&#x2F; 实际赋值过程如下，产生了一个中间变量double dval &#x3D; 3.14;const int temp  &#x3D; dv"}</script><link rel="canonical" href="https://flsy.netlify.app/2025/02/13/CPP%20BASIC/PersonalUnderstanding/%E5%85%B3%E4%BA%8E%E5%B8%B8%E9%87%8F%E5%BC%95%E7%94%A8%EF%BC%8C%E5%B7%A6%E5%80%BC%E5%BC%95%E7%94%A8%EF%BC%8C%E5%8F%B3%E5%80%BC%E5%BC%95%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%90%86%E8%A7%A3/"><link rel="icon" href="/img/favicon.svg"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="jsdelivr"><link data-pjax rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.svg" alt="传说中的三蛋" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a><a class="navbar-item" href="/categories/CPP-Basic/">CPP Basic</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><div class="card"><article class="card-content article" role="article"><h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal"><i class="fas fa-angle-double-right"></i>关于常量引用，左值引用，右值引用的一些理解</h1><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><i class="far fa-calendar-alt"> </i><time datetime="2025-02-13T11:36:01.000Z" title="2025-02-13T11:36:01.000Z">2025-02-13</time></span><span class="level-item is-hidden-mobile"><i class="far fa-calendar-check"> </i><time datetime="2025-05-29T10:02:50.156Z" title="2025-05-29T10:02:50.156Z">2025-05-29</time></span><span class="level-item"><a class="link-muted" href="/categories/CPP-BASIC/">CPP BASIC</a><span> / </span><a class="link-muted" href="/categories/CPP-BASIC/PersonalUnderstanding/">PersonalUnderstanding</a></span><span class="level-item">16 分钟读完 (大约2372个字)</span><span class="level-item" id="busuanzi_container_page_pv"><span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><div class="content"><h2 id="简单理解"><a href="#简单理解" class="headerlink" title="简单理解"></a>简单理解</h2><p>代码块1：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">double</span> dval = <span class="number">3.14</span>;</span><br><span class="line"><span class="comment">// 使用右值引用接受隐式转换产生的临时量（字面量）</span></span><br><span class="line"><span class="type">int</span> &amp;&amp;rd = dval;</span><br></pre></td></tr></table></figure>
+
+<p>代码块2：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">double</span> dval = <span class="number">3.14</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> &amp;ri = dval;</span><br><span class="line"><span class="comment">// 实际赋值过程如下，产生了一个中间变量</span></span><br><span class="line"><span class="type">double</span> dval = <span class="number">3.14</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> temp  = dval;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> &amp;rt = temp;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>上述代码都可以编译通过，看代码块2，在将<code>dval</code>的值赋值到<code>ri</code>上的时候，会生成中间变量，这个变量是一个临时值，也就是一个右值，这时想要创建引用，就必须使用右值引用来接收，代码块1编译通过，证明了这一点。</p>
+<p><code>int &amp;b = dval;</code>会编译错误，不能使用左值引用来接受，是因为C++ 标准规定，非<code>const</code>左值引用不能绑定到临时对象上。这种设计的初衷是为了防止程序员意外修改转换后临时对象的值，或者在引用一个临时对象时产生意外的副作用。</p>
+<p>为什么可以用<code>const int temp</code>来接收呢，因为临时量，也就是字面量，或者说右值，可以用来初始化变量，也可以用来初始化常量，<code>int aa  = dval;</code>使用字面量初始化一个变量，编译通过。</p>
+<p>为什么<code>const int &amp;rt = temp;</code>就可以使用左值引用来接收，因为<code>const int temp  = dval;</code>，已经将右值固化，有了固定的内存地址，此时<code>temp</code>是左值。两个步骤都必须存在<code>const</code>的原因就是为了延长临时对象的生命周期，安全绑定，避免意外转换造成引用为空。</p>
+<p>引用的底层是常量指针，指针本身不可以修改，指向的对象可以修改。常量引用就可以理解为指向常量的常量指针，指针本身以及指向的对象都不可以修改。</p>
+<span id="more"></span>
+
+<h2 id="所有的隐式转换产生的中间值都是右值吗？"><a href="#所有的隐式转换产生的中间值都是右值吗？" class="headerlink" title="所有的隐式转换产生的中间值都是右值吗？"></a><strong>所有的隐式转换产生的中间值都是右值吗？</strong></h2><p>在C++中，隐式转换生成的中间值通常是<strong>右值</strong>，但存在一些特殊场景需要具体分析。以下是详细解答：</p>
+<hr>
+<h3 id="1-基本规则"><a href="#1-基本规则" class="headerlink" title="1. 基本规则"></a><strong>1. 基本规则</strong></h3><p>隐式转换（如算术类型转换、类类型的构造函数或转换运算符）生成的临时对象通常是<strong>右值</strong>，因为：</p>
+<ul>
+<li>它们没有名称，无法被直接寻址（如 <code>3.14</code> 转 <code>int</code> 生成的临时 <code>3</code>）。</li>
+<li>它们的生命周期仅限于当前表达式（除非被引用延长）。</li>
+</ul>
+<h4 id="示例1：算术类型转换"><a href="#示例1：算术类型转换" class="headerlink" title="示例1：算术类型转换"></a><strong>示例1：算术类型转换</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">double</span> dval = <span class="number">3.14</span>;</span><br><span class="line"><span class="type">int</span> &amp;&amp;rd = dval; <span class="comment">// 隐式生成临时int（右值），绑定到右值引用</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> &amp;ri = dval; <span class="comment">// 同样绑定到临时int（右值）</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="示例2：类类型转换"><a href="#示例2：类类型转换" class="headerlink" title="示例2：类类型转换"></a><strong>示例2：类类型转换</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> x) &#123;&#125; <span class="comment">// 隐式构造函数</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(A a)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">func</span>(<span class="number">42</span>); <span class="comment">// 隐式生成临时A对象（右值）</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2-例外情况"><a href="#2-例外情况" class="headerlink" title="2. 例外情况"></a><strong>2. 例外情况</strong></h3><p>隐式转换的中间值<strong>不一定是右值</strong>，如果转换结果本身是左值：</p>
+<ul>
+<li>当隐式转换通过<strong>返回左值引用的转换函数</strong>完成时，中间值为左值。</li>
+</ul>
+<h4 id="示例3：转换函数返回左值引用"><a href="#示例3：转换函数返回左值引用" class="headerlink" title="示例3：转换函数返回左值引用"></a><strong>示例3：转换函数返回左值引用</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">int</span> value = <span class="number">42</span>;</span><br><span class="line">    <span class="keyword">operator</span> <span class="type">int</span>&amp;() &#123; <span class="keyword">return</span> value; &#125; <span class="comment">// 返回左值引用</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    B b;</span><br><span class="line">    <span class="type">int</span> &amp;ri = b; <span class="comment">// 隐式转换返回左值引用（左值）</span></span><br><span class="line">    ri = <span class="number">100</span>;    <span class="comment">// 修改的是b.value</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里，<code>B</code> 到 <code>int</code> 的隐式转换返回的是对成员 <code>value</code> 的左值引用，因此中间值是左值。</p>
+<hr>
+<h3 id="3-关键区分"><a href="#3-关键区分" class="headerlink" title="3. 关键区分"></a><strong>3. 关键区分</strong></h3><ul>
+<li><strong>右值</strong>：临时对象、字面量（如 <code>42</code>）、表达式计算结果（如 <code>a + b</code>）。</li>
+<li><strong>左值</strong>：具名对象、函数返回左值引用的结果、可通过地址访问的实体。</li>
+</ul>
+<h4 id="示例4：隐式转换的中间值类型"><a href="#示例4：隐式转换的中间值类型" class="headerlink" title="示例4：隐式转换的中间值类型"></a><strong>示例4：隐式转换的中间值类型</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">C</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">C</span>(<span class="type">double</span> x) &#123;&#125; <span class="comment">// 隐式构造函数</span></span><br><span class="line">    <span class="function"><span class="keyword">operator</span> <span class="title">int</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="number">42</span>; &#125; <span class="comment">// 返回右值（值类型）</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    C c = <span class="number">3.14</span>;        <span class="comment">// 隐式转换生成的临时C对象（右值）</span></span><br><span class="line">    <span class="type">int</span> x = c;         <span class="comment">// 隐式转换调用operator int()，生成右值</span></span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> &amp;rx = c; <span class="comment">// 绑定到隐式转换生成的右值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a><strong>4. 总结</strong></h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>中间值类型</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>算术类型转换</td>
+<td>右值</td>
+<td>临时对象无法寻址</td>
+</tr>
+<tr>
+<td>类构造函数隐式转换</td>
+<td>右值</td>
+<td>生成临时对象</td>
+</tr>
+<tr>
+<td>转换函数返回<strong>值类型</strong></td>
+<td>右值</td>
+<td>如 <code>operator int()</code></td>
+</tr>
+<tr>
+<td>转换函数返回<strong>左值引用</strong></td>
+<td>左值</td>
+<td>如 <code>operator int&amp;()</code></td>
+</tr>
+</tbody></table>
+<p>因此：</p>
+<ul>
+<li><strong>大部分隐式转换生成的中间值是右值</strong>。</li>
+<li><strong>若隐式转换返回左值引用，则中间值为左值</strong>（需显式定义相关转换函数）。</li>
+</ul>
+<h2 id="详解explicit"><a href="#详解explicit" class="headerlink" title="详解explicit"></a><strong>详解explicit</strong></h2><p>在C++中，<code>explicit</code> 是一个关键字，用于修饰<strong>构造函数</strong>或<strong>类型转换运算符</strong>，以禁止编译器在某些上下文中进行隐式类型转换。它的主要作用是增强代码的安全性，避免意外的隐式转换导致的潜在问题。</p>
+<hr>
+<h3 id="1-explicit-的作用"><a href="#1-explicit-的作用" class="headerlink" title="1. explicit 的作用"></a><strong>1. <code>explicit</code> 的作用</strong></h3><ul>
+<li><strong>禁止隐式转换</strong>：<code>explicit</code> 修饰的构造函数或转换运算符只能用于显式转换，不能用于隐式转换。</li>
+<li><strong>提高代码清晰度</strong>：强制程序员明确表达意图，避免隐式转换带来的歧义。</li>
+</ul>
+<hr>
+<h3 id="2-explicit-的适用场景"><a href="#2-explicit-的适用场景" class="headerlink" title="2. explicit 的适用场景"></a><strong>2. <code>explicit</code> 的适用场景</strong></h3><h4 id="1-构造函数"><a href="#1-构造函数" class="headerlink" title="(1) 构造函数"></a><strong>(1) 构造函数</strong></h4><p>当类的构造函数只有一个参数（或除第一个参数外都有默认值）时，该构造函数可以用于隐式类型转换。如果希望禁止这种隐式转换，可以将构造函数声明为 <code>explicit</code>。</p>
+<h5 id="示例1：隐式转换的问题"><a href="#示例1：隐式转换的问题" class="headerlink" title="示例1：隐式转换的问题"></a><strong>示例1：隐式转换的问题</strong></h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">A</span>(<span class="type">int</span> x) : <span class="built_in">value</span>(x) &#123;&#125; <span class="comment">// 允许隐式转换</span></span><br><span class="line">    <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(A a)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; a.value &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">func</span>(<span class="number">42</span>); <span class="comment">// 隐式调用 A(int)，将 42 转换为 A 类型</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这里 <code>func(42)</code> 会隐式调用 <code>A(int)</code> 构造函数，生成一个临时 <code>A</code> 对象。</li>
+<li>这种隐式转换可能导致代码难以理解，甚至隐藏潜在的错误。</li>
+</ul>
+<h5 id="示例2：使用-explicit-禁止隐式转换"><a href="#示例2：使用-explicit-禁止隐式转换" class="headerlink" title="示例2：使用 explicit 禁止隐式转换"></a><strong>示例2：使用 <code>explicit</code> 禁止隐式转换</strong></h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">A</span><span class="params">(<span class="type">int</span> x)</span> : value(x) &#123;</span>&#125; <span class="comment">// 禁止隐式转换</span></span><br><span class="line">    <span class="type">int</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(A a)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; a.value &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// func(42); // 错误：不能隐式调用 explicit 构造函数</span></span><br><span class="line">    <span class="built_in">func</span>(<span class="built_in">A</span>(<span class="number">42</span>)); <span class="comment">// 正确：显式调用构造函数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过 <code>explicit</code> 修饰构造函数，<code>func(42)</code> 会编译失败，必须显式调用 <code>A(42)</code>。</li>
+</ul>
+<hr>
+<h4 id="2-类型转换运算符"><a href="#2-类型转换运算符" class="headerlink" title="(2) 类型转换运算符"></a><strong>(2) 类型转换运算符</strong></h4><p><code>explicit</code> 也可以用于修饰类型转换运算符，禁止隐式调用转换函数。</p>
+<h5 id="示例3：隐式类型转换运算符"><a href="#示例3：隐式类型转换运算符" class="headerlink" title="示例3：隐式类型转换运算符"></a><strong>示例3：隐式类型转换运算符</strong></h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">operator</span> <span class="title">int</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="number">42</span>; &#125; <span class="comment">// 允许隐式转换</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    B b;</span><br><span class="line">    <span class="type">int</span> x = b; <span class="comment">// 隐式调用 operator int()</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这里 <code>int x = b;</code> 会隐式调用 <code>operator int()</code>，将 <code>b</code> 转换为 <code>int</code>。</li>
+</ul>
+<h5 id="示例4：使用-explicit-禁止隐式转换"><a href="#示例4：使用-explicit-禁止隐式转换" class="headerlink" title="示例4：使用 explicit 禁止隐式转换"></a><strong>示例4：使用 <code>explicit</code> 禁止隐式转换</strong></h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">int</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="number">42</span>; &#125; <span class="comment">// 禁止隐式转换</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    B b;</span><br><span class="line">    <span class="comment">// int x = b; // 错误：不能隐式调用 explicit 转换运算符</span></span><br><span class="line">    <span class="type">int</span> x = <span class="built_in">static_cast</span>&lt;<span class="type">int</span>&gt;(b); <span class="comment">// 正确：显式调用转换运算符</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过 <code>explicit</code> 修饰转换运算符，<code>int x = b;</code> 会编译失败，必须显式调用 <code>static_cast&lt;int&gt;(b)</code>。</li>
+</ul>
+<hr>
+<h3 id="3-explicit-的优点"><a href="#3-explicit-的优点" class="headerlink" title="3. explicit 的优点"></a><strong>3. <code>explicit</code> 的优点</strong></h3><ol>
+<li><p><strong>避免意外的隐式转换</strong>：</p>
+<ul>
+<li>隐式转换可能导致难以发现的错误，例如将 <code>int</code> 隐式转换为类类型时，可能产生不符合预期的行为。</li>
+<li><code>explicit</code> 强制显式转换，使代码更安全。</li>
+</ul>
+</li>
+<li><p><strong>提高代码可读性</strong>：</p>
+<ul>
+<li>显式转换明确表达了程序员的意图，使代码更易于理解和维护。</li>
+</ul>
+</li>
+<li><p><strong>防止歧义</strong>：</p>
+<ul>
+<li>在某些情况下，隐式转换可能导致函数重载解析的歧义，<code>explicit</code> 可以避免这种问题。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="4-explicit-的注意事项"><a href="#4-explicit-的注意事项" class="headerlink" title="4. explicit 的注意事项"></a><strong>4. <code>explicit</code> 的注意事项</strong></h3><ol>
+<li><p><strong>仅适用于单参数构造函数</strong>：</p>
+<ul>
+<li>多参数构造函数不能用于隐式转换，因此不需要 <code>explicit</code>。</li>
+<li>例外：如果多参数构造函数中除第一个参数外都有默认值，则仍可能用于隐式转换。</li>
+</ul>
+</li>
+<li><p><strong>C++11 扩展</strong>：</p>
+<ul>
+<li>在 C++11 之前，<code>explicit</code> 只能用于构造函数。</li>
+<li>从 C++11 开始，<code>explicit</code> 可以用于类型转换运算符。</li>
+</ul>
+</li>
+<li><p><strong>显式转换的方式</strong>：</p>
+<ul>
+<li>使用 <code>static_cast</code> 或直接调用构造函数（如 <code>A(42)</code>）。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="5-实际应用场景"><a href="#5-实际应用场景" class="headerlink" title="5. 实际应用场景"></a><strong>5. 实际应用场景</strong></h3><h4 id="1-防止隐式构造"><a href="#1-防止隐式构造" class="headerlink" title="(1) 防止隐式构造"></a><strong>(1) 防止隐式构造</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">String</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">String</span><span class="params">(<span class="type">int</span> size)</span> </span>&#123; <span class="comment">/* 分配内存 */</span> &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">printString</span><span class="params">(<span class="type">const</span> String&amp; s)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// printString(10); // 错误：不能隐式调用 explicit 构造函数</span></span><br><span class="line">    <span class="built_in">printString</span>(<span class="built_in">String</span>(<span class="number">10</span>)); <span class="comment">// 正确：显式调用</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-防止隐式类型转换"><a href="#2-防止隐式类型转换" class="headerlink" title="(2) 防止隐式类型转换"></a><strong>(2) 防止隐式类型转换</strong></h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Boolean</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> <span class="literal">true</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Boolean b;</span><br><span class="line">    <span class="comment">// if (b) &#123; /* ... */ &#125; // 错误：不能隐式调用 explicit 转换运算符</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">static_cast</span>&lt;<span class="type">bool</span>&gt;(b)) &#123; <span class="comment">/* ... */</span> &#125; <span class="comment">// 正确：显式调用</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="6-总结"><a href="#6-总结" class="headerlink" title="6. 总结"></a><strong>6. 总结</strong></h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>隐式转换</th>
+<th>显式转换（<code>explicit</code>）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>构造函数</strong></td>
+<td>允许隐式调用</td>
+<td>必须显式调用</td>
+</tr>
+<tr>
+<td><strong>类型转换运算符</strong></td>
+<td>允许隐式调用</td>
+<td>必须显式调用</td>
+</tr>
+<tr>
+<td><strong>优点</strong></td>
+<td>代码简洁</td>
+<td>避免意外行为，提高代码安全性</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>简单、明确的转换</td>
+<td>复杂或易出错的转换</td>
+</tr>
+</tbody></table>
+<ul>
+<li><strong><code>explicit</code> 的核心作用</strong>：禁止隐式转换，强制显式表达意图。</li>
+<li><strong>使用建议</strong>：在构造函数和转换运算符中，优先使用 <code>explicit</code>，除非有明确的理由允许隐式转换。</li>
+</ul>
+</div><div class="article-licensing box"><div class="licensing-title"><p>关于常量引用，左值引用，右值引用的一些理解</p><p><a href="https://flsy.netlify.app/2025/02/13/CPP BASIC/PersonalUnderstanding/关于常量引用，左值引用，右值引用的一些理解/">https://flsy.netlify.app/2025/02/13/CPP BASIC/PersonalUnderstanding/关于常量引用，左值引用，右值引用的一些理解/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>神明大人</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2025-02-13</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2025-05-29</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="CC BY-NC-SA 4.0" href="https://creativecommons.org/licenses/by-nc-sa/4.0/"><i class="icon fab fa-creative-commons"></i><i class="icon fab fa-creative-commons-by"></i><i class="icon fab fa-creative-commons-nc"></i><i class="icon fab fa-creative-commons-sa"></i></a></p></div></div></div></div></div><hr style="height:1px;margin:1rem 0"><div class="level is-mobile is-flex"><div class="article-tags is-size-7 is-uppercase"><i class="fas fa-tags has-text-grey"></i> <a class="link-muted" rel="tag" href="/tags/cpp-dev/">cpp_dev </a></div></div><div class="a2a_kit a2a_kit_size_32 a2a_default_style"><a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a><a class="a2a_button_facebook"></a><a class="a2a_button_twitter"></a><a class="a2a_button_telegram"></a><a class="a2a_button_whatsapp"></a><a class="a2a_button_reddit"></a></div><script src="https://static.addtoany.com/menu/page.js" defer></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="/" alt="微信"></span></a><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="/" alt="支付宝"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2025/02/18/WPF/WPF%20Learning/WPF%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">WPF基本结构</span></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#简单理解"><span class="level-left"><span class="level-item">1</span><span class="level-item">简单理解</span></span></a></li><li><a class="level is-mobile" href="#所有的隐式转换产生的中间值都是右值吗？"><span class="level-left"><span class="level-item">2</span><span class="level-item">所有的隐式转换产生的中间值都是右值吗？</span></span></a></li><li><a class="level is-mobile" href="#详解explicit"><span class="level-left"><span class="level-item">3</span><span class="level-item">详解explicit</span></span></a></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/CPP-BASIC/"><span class="level-start"><span class="level-item">CPP BASIC</span></span><span class="level-end"><span class="level-item tag">1</span></span></a><ul><li><a class="level is-mobile" href="/categories/CPP-BASIC/PersonalUnderstanding/"><span class="level-start"><span class="level-item">PersonalUnderstanding</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/Oracle/"><span class="level-start"><span class="level-item">Oracle</span></span><span class="level-end"><span class="level-item tag">1</span></span></a><ul><li><a class="level is-mobile" href="/categories/Oracle/Oracle%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/"><span class="level-start"><span class="level-item">Oracle学习记录</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/WPF/"><span class="level-start"><span class="level-item">WPF</span></span><span class="level-end"><span class="level-item tag">2</span></span></a><ul><li><a class="level is-mobile" href="/categories/WPF/WPF-Learning/"><span class="level-start"><span class="level-item">WPF Learning</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-05-29T10:02:50.157Z">2025-05-29</time></p><p class="title"><a href="/2025/05/29/hello-world/">Hello World</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-03-09T07:47:23.000Z">2025-03-09</time></p><p class="title"><a href="/2025/03/09/Oracle/Oracle%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/Oracle%2023ai%20FREE%20%E7%9B%B8%E5%85%B3%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">Oracle 23ai FREE 相关学习记录</a></p><p class="categories"><a href="/categories/Oracle/">Oracle</a> / <a href="/categories/Oracle/Oracle%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">Oracle学习记录</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-18T02:25:02.000Z">2025-02-18</time></p><p class="title"><a href="/2025/02/18/WPF/WPF%20Learning/WPF-MVVM/">WPF_MVVM</a></p><p class="categories"><a href="/categories/WPF/">WPF</a> / <a href="/categories/WPF/WPF-Learning/">WPF Learning</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-18T02:15:24.000Z">2025-02-18</time></p><p class="title"><a href="/2025/02/18/WPF/WPF%20Learning/WPF%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84/">WPF基本结构</a></p><p class="categories"><a href="/categories/WPF/">WPF</a> / <a href="/categories/WPF/WPF-Learning/">WPF Learning</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-02-13T11:36:01.000Z">2025-02-13</time></p><p class="title"><a href="/2025/02/13/CPP%20BASIC/PersonalUnderstanding/%E5%85%B3%E4%BA%8E%E5%B8%B8%E9%87%8F%E5%BC%95%E7%94%A8%EF%BC%8C%E5%B7%A6%E5%80%BC%E5%BC%95%E7%94%A8%EF%BC%8C%E5%8F%B3%E5%80%BC%E5%BC%95%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E7%90%86%E8%A7%A3/">关于常量引用，左值引用，右值引用的一些理解</a></p><p class="categories"><a href="/categories/CPP-BASIC/">CPP BASIC</a> / <a href="/categories/CPP-BASIC/PersonalUnderstanding/">PersonalUnderstanding</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2025/05/"><span class="level-start"><span class="level-item">五月 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/03/"><span class="level-start"><span class="level-item">三月 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/02/"><span class="level-start"><span class="level-item">二月 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/C-Sharp/"><span class="tag">C Sharp</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/WPF-Basic/"><span class="tag">WPF Basic</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/cpp-dev/"><span class="tag">cpp_dev</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/oracle-learn/"><span class="tag">oracle_learn</span><span class="tag">1</span></a></div></div></div></div></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://hexo.io" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Hexo</span></span><span class="level-right"><span class="level-item tag">hexo.io</span></span></a></li><li><a class="level is-mobile" href="https://bulma.io" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Bulma</span></span><span class="level-right"><span class="level-item tag">bulma.io</span></span></a></li></ul></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.svg" alt="传说中的三蛋" height="28"></a><p class="is-size-7"><span>&copy; 2025 神明大人</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a><br><a href="xxxurl">还没有备案，先把位置占上</a><br><span id="busuanzi_container_site_uv">共<span id="busuanzi_value_site_uv">0</span>个访客</span></p><p class="is-size-7">版权声明：本网站所有内容均收集于互联网或自己创作,方便于网友与自己学习交流，如有侵权，请留言，立即处理</p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0" href="https://creativecommons.org/licenses/by-nc-sa/4.0/"><i class="fab fa-creative-commons"></i> <i class="fab fa-creative-commons-by"></i> <i class="fab fa-creative-commons-nc"></i> <i class="fab fa-creative-commons-sa"></i> </a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "此网站使用Cookie来改善您的体验。",
+          dismiss: "知道了！",
+          allow: "允许使用Cookie",
+          deny: "拒绝",
+          link: "了解更多",
+          policy: "Cookie政策",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="/js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script data-pjax src="/js/insight.js" defer></script><script data-pjax>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
